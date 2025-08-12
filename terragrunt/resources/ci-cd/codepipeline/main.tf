@@ -223,9 +223,13 @@ resource "aws_iam_role_policy" "codebuild_policy" {
         Effect = "Allow"
         Action = [
           "eks:DescribeCluster",
-          "eks:DescribeNodegroup"
+          "eks:DescribeNodegroup",
+          "eks:AccessKubernetesApi"
         ]
-        Resource = "*"
+        Resource = [
+          "arn:aws:eks:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:cluster/${var.eks_cluster_name}",
+          "arn:aws:eks:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:nodegroup/${var.eks_cluster_name}/*/*"
+        ]
       },
       {
         Effect = "Allow"

@@ -7,7 +7,7 @@ include "root" {
 # }
 
 dependency "ecr" {
-  config_path = "../../containers/ecr"
+  config_path = "${get_parent_terragrunt_dir("root")}/resources/containers/ecr"
   mock_outputs = {
     repository_url = "mock-ecr-url"
     repository_name = "mock-repo"
@@ -15,7 +15,7 @@ dependency "ecr" {
 }
 
 dependency "eks_cluster" {
-  config_path = "../../containers/eks_cluster"
+  config_path = "${get_parent_terragrunt_dir("root")}/resources/containers/eks_cluster"
   mock_outputs = {
     cluster_name = "mock-cluster"
     cluster_endpoint = "https://mock.eks.us-east-1.amazonaws.com"
@@ -24,7 +24,7 @@ dependency "eks_cluster" {
 }
 
 dependency "secrets_manager" {
-  config_path = "../../security/secrets_manager"
+  config_path = "${get_parent_terragrunt_dir("root")}/resources/security/secrets_manager"
   mock_outputs = {
     secrets = {
       jwt = {
@@ -38,7 +38,7 @@ dependency "secrets_manager" {
 }
 
 dependency "rds" {
-  config_path = "../../databases/rds/postgre"
+  config_path = "${get_parent_terragrunt_dir("root")}/resources/databases/rds/postgre"
   mock_outputs = {
     db_instance_master_user_secret_arn = "arn:aws:secretsmanager:us-east-1:123456789012:secret:mock-rds"
   }
