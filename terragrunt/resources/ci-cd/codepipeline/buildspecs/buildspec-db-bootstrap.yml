@@ -1,0 +1,59 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Installing kubectl..."
+      - curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.27.1/2023-04-19/bin/linux/amd64/kubectl
+      - chmod +x ./kubectl
+      - mv ./kubectl /usr/local/bin
+      - kubectl version --client
+  
+  pre_build:
+    commands:
+      - echo "Database Bootstrap phase started on `date`"
+      - echo "Configuring kubectl for EKS cluster..."
+      - aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $EKS_CLUSTER_NAME
+      - echo "Verifying cluster connection..."
+      - kubectl get nodes
+  
+  build:
+    commands:
+      - echo "Dynamically updating RDS secret ARN in manifest..."
+      - cd k8s/manifests
+      - sed -i "s|__RDS_SECRET_ARN__|${RDS_SECRET_ARN}|g" external-secret.yaml
+      - echo "Manifest updated:"
+      - cat external-secret.yaml
+
+      - echo "Applying security and secret manifests..."
+      - kubectl apply -f external-secrets-serviceaccount.yaml -n festivos-api
+      - kubectl apply -f external-secret.yaml -n festivos-api
+      
+      - echo "Waiting for ExternalSecret 'rds-credentials' to be ready..."
+      - kubectl wait --for=condition=Ready externalsecret/rds-credentials -n festivos-api --timeout=2m
+      
+      - echo "Waiting for Secret 'rds-secret' to be created..."
+      - |
+        TIMEOUT=120
+        SECONDS=0
+        while ! kubectl get secret rds-secret -n festivos-api > /dev/null 2>&1; do
+          if [ $SECONDS -ge $TIMEOUT ]; then
+            echo "Timed out waiting for secret/rds-secret to be created."
+            kubectl get externalsecret rds-credentials -n festivos-api -o yaml
+            exit 1
+          fi
+          echo "Waiting for secret/rds-secret to be created... ($SECONDS/$TIMEOUT)"
+          sleep 5
+          SECONDS=$((SECONDS + 5))
+        done
+        echo "Secret rds-secret found."
+
+      - echo "Applying database setup manifests..."
+      - kubectl apply -f sql-scripts-original.yaml -n festivos-api
+      - kubectl apply -f db-complete-setup.yaml -n festivos-api
+  
+  post_build:
+    commands:
+      - echo "Waiting for database setup job to complete..."
+      - kubectl wait --for=condition=complete job/db-complete-setup -n festivos-api --timeout=5m
+      - echo "Database Bootstrap completed successfully on `date`"
