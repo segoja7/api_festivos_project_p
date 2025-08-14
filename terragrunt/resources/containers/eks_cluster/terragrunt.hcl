@@ -27,11 +27,18 @@ dependency "vpc_endpoints" {
   skip_outputs                           = false
 }
 
+dependency "role_arn_codebuild" {
+  config_path = "${get_parent_terragrunt_dir("root")}/resources/security/iam/roles"
+  mock_outputs = {
+    codebuild_role_arn = "vpce-87654321"
+  }
+  mock_outputs_merge_strategy_with_state = "shallow"
+  skip_outputs                           = false
+}
+
 inputs = {
   vpc_id             = dependency.vpc.outputs.vpc_id
   private_subnet_ids = dependency.vpc.outputs.private_subnets
   public_subnet_ids  = dependency.vpc.outputs.public_subnets
-
-  # Añadido para dar permisos al rol de CodeBuild dentro del clúster EKS
-  # Usando el método moderno de Access Entries
+  codebuild_role_arn  = dependency.role_arn_codebuild.outputs.codebuild_role_arn
 }

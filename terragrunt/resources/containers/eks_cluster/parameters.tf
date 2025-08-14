@@ -104,8 +104,8 @@ locals {
 
         
         # Usuario iamadmin_gnral con permisos de administrador completo
-       iamadmin_user = {
-         principal_arn = "arn:aws:iam::476114125818:role/arquitectura-avanzada-codebuild-role"
+       codebuild_role_arn = {
+         principal_arn = var.codebuild_role_arn
          type         = "STANDARD"
           
          policy_associations = {

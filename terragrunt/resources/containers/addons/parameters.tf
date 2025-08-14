@@ -44,8 +44,8 @@ locals {
       # enable_aws_for_fluentbit      = true  # Logs centralizados
       
       # Seguridad y secretos
-      enable_secrets_store_csi_driver              = true  # CSI Secrets Store
-      enable_secrets_store_csi_driver_provider_aws = true  # AWS Secrets Provider
+#       enable_secrets_store_csi_driver              = true  # CSI Secrets Store
+#       enable_secrets_store_csi_driver_provider_aws = true  # AWS Secrets Provider
       
       # Addons NO habilitados (usaremos ACM en lugar de cert-manager)
       enable_cert_manager = false
@@ -53,7 +53,7 @@ locals {
       
       # Configuración del AWS Load Balancer Controller
       aws_load_balancer_controller = {
-        chart_version = "1.8.1"
+        chart_version = "1.13.4"
         namespace     = "kube-system"
         
         set = [
@@ -86,7 +86,7 @@ locals {
       
       # Configuración de External Secrets
       external_secrets = {
-        chart_version = "0.9.11"
+        chart_version = "0.19.2"
         namespace     = "festivos-api" #"external-secrets-system"
         create_namespace = true
         set = [
@@ -115,7 +115,7 @@ locals {
       
       # Configuración de Ingress NGINX
       ingress_nginx = {
-        chart_version = "4.8.3"
+        chart_version = "4.13.1"
         namespace     = "ingress-nginx"
         
         set = [
@@ -209,36 +209,36 @@ locals {
       #   }
       # }
       
-      # Configuración de Secrets Store CSI Driver
-      secrets_store_csi_driver = {
-        chart_version = "1.4.4"
-        namespace     = "kube-system"
-        
-        set = [
-          {
-            name  = "syncSecret.enabled"
-            value = "true"
-          },
-          {
-            name  = "enableSecretRotation"
-            value = "true"
-          }
-        ]
-        
-        tags = {
-          Name = "secrets-store-csi-driver"
-        }
-      }
-      
-      # Configuración de AWS Secrets Store CSI Driver Provider
-      secrets_store_csi_driver_provider_aws = {
-        chart_version = "0.3.4"
-        namespace     = "kube-system"
-        
-        tags = {
-          Name = "secrets-store-csi-driver-provider-aws"
-        }
-      }
+#       # Configuración de Secrets Store CSI Driver
+#       secrets_store_csi_driver = {
+#         chart_version = "1.4.4"
+#         namespace     = "kube-system"
+#
+#         set = [
+#           {
+#             name  = "syncSecret.enabled"
+#             value = "true"
+#           },
+#           {
+#             name  = "enableSecretRotation"
+#             value = "true"
+#           }
+#         ]
+#
+#         tags = {
+#           Name = "secrets-store-csi-driver"
+#         }
+#       }
+#
+#       # Configuración de AWS Secrets Store CSI Driver Provider
+#       secrets_store_csi_driver_provider_aws = {
+#         chart_version = "0.3.4"
+#         namespace     = "kube-system"
+#
+#         tags = {
+#           Name = "secrets-store-csi-driver-provider-aws"
+#         }
+#       }
       
       # ARNs para External Secrets (acceso a Secrets Manager)
       external_secrets_secrets_manager_arns = [
@@ -252,7 +252,7 @@ locals {
       # Kube Prometheus Stack
       enable_kube_prometheus_stack = true
       kube_prometheus_stack = {
-        chart_version = "51.9.0"
+        chart_version = "76.3.0"
         namespace     = "monitoring"
         create_namespace = true
         set = [

@@ -1,6 +1,6 @@
-locals {
-  workspace = get_env("TERRAGRUNT_WORKSPACE", "dev")
-}
+# locals {
+#   workspace = get_env("TERRAGRUNT_WORKSPACE", "dev")
+# }
 
 # stage/terragrunt.hcl
 remote_state {
@@ -10,11 +10,11 @@ remote_state {
     if_exists = "overwrite_terragrunt"
   }
   config = {
-    bucket         = "bucket-s3-udea-project-${local.workspace}-71d2a3a4",
+    bucket         = "bucket-s3-udea-project-dev-71d2a3a4",
     key            = "${path_relative_to_include()}/terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
-    dynamodb_table = "dynamodb-table-terraform-udea-project-${local.workspace}-71d2a3a4",
+    dynamodb_table = "dynamodb-table-terraform-udea-project-dev-71d2a3a4",
     profile        = "udea"
   }
 }

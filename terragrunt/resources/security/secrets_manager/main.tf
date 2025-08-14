@@ -6,10 +6,10 @@ module "secrets_manager" {
   source  = "terraform-aws-modules/secrets-manager/aws"
   version = "1.3.1"
 
-  for_each = local.secrets
+  for_each = local.workspace.secrets
 
   # Secret configuration
-  name                    = each.value.secret_name
+  name_prefix             = each.value.secret_name
   description             = each.value.secret_description
   recovery_window_in_days = each.value.recovery_window_in_days
   kms_key_id              = each.value.kms_key_id

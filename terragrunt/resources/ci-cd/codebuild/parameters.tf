@@ -5,14 +5,9 @@
 locals {
   env = {
     default = {
-      # Configuración básica del pipeline
 
       pipeline_name = "arquitectura-avanzada-pipeline"
-      # Configuración de Source (GitHub)
-      github_owner = "segoja7"
-      github_repo = "api_festivos_project_p"
-      github_branch = "master"
-      github_connection_name = "arq-avanzada-github-connection"
+
       
       # Configuración de Build (CodeBuild)
       codebuild_project_name = "arquitectura-avanzada-build"
@@ -22,9 +17,7 @@ locals {
       codebuild_type = "LINUX_CONTAINER"
       codebuild_privileged_mode = true
       
-      # Configuración de Deploy (EKS)
-      deploy_stage_name = "Deploy"
-      deploy_action_name = "DeployToEKS"
+
       
 
       
@@ -60,25 +53,25 @@ locals {
           value = var.jwt_secret_arn
           type  = "PLAINTEXT"
         }
+        DOCKERHUB_SECRET_ARN = {
+           name  = "DOCKERHUB_SECRET_ARN"
+           value = var.dockerhub_secret_arn
+           type  = "PLAINTEXT"
+         }
+
       }
       
       # Configuración de buildspec
       
       
-      # Configuración de notificaciones (opcional)
-      enable_notifications = false
-      notification_events = [
-        "codepipeline-pipeline-pipeline-execution-failed",
-        "codepipeline-pipeline-pipeline-execution-succeeded"
-      ]
+
+
       
       # Configuración de logs
       cloudwatch_logs_group_name = "/aws/codebuild/arquitectura-avanzada-build"
       cloudwatch_logs_retention_days = 14
       
-      # Configuración de timeout
-      build_timeout = 60
-      queued_timeout = 480
+
       
       # Tags específicos
       tags = {

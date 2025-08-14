@@ -41,11 +41,11 @@ module "eks_blueprints_addons" {
   # aws_for_fluentbit_cw_log_group = local.workspace["aws_for_fluentbit_cw_log_group"]
 
   # Secrets Store CSI Driver
-  enable_secrets_store_csi_driver              = local.workspace["enable_secrets_store_csi_driver"]
-  secrets_store_csi_driver                     = local.workspace["secrets_store_csi_driver"]
-  
-  enable_secrets_store_csi_driver_provider_aws = local.workspace["enable_secrets_store_csi_driver_provider_aws"]
-  secrets_store_csi_driver_provider_aws        = local.workspace["secrets_store_csi_driver_provider_aws"]
+#   enable_secrets_store_csi_driver              = local.workspace["enable_secrets_store_csi_driver"]
+#   secrets_store_csi_driver                     = local.workspace["secrets_store_csi_driver"]
+#
+#   enable_secrets_store_csi_driver_provider_aws = local.workspace["enable_secrets_store_csi_driver_provider_aws"]
+#   secrets_store_csi_driver_provider_aws        = local.workspace["secrets_store_csi_driver_provider_aws"]
 
   # Prometheus and Grafana
   enable_kube_prometheus_stack = local.workspace["enable_kube_prometheus_stack"]

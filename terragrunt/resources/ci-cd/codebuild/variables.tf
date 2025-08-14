@@ -24,37 +24,11 @@ variable "dockerhub_secret_arn" {
 }
 
 variable "codepipeline_role_arn" {
+  type = string
   description = "codepipeline_role_arn"
-  type        = string
 }
 
 variable "codebuild_role_arn" {
+  type = string
   description = "codebuild_role_arn"
-  type        = string
 }
-
-variable "s3_bucket" {
-  description = "s3_bucket"
-  type = string
-}
-
-variable "github_connection_arn" {
-  description = "s3_bucket"
-  type = string
-}
-
-variable "build_project_name" {
-  description = "build_project_name"
-  type = string
-}
-
-variable "db_bootstrap_project_name" {
-  description = "db_bootstrap_project_name"
-  type = string
-}
-
-variable "deploy_project_name" {
-  description = "deploy_project_name"
-  type = string
-}
-

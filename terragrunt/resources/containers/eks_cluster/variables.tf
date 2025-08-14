@@ -17,3 +17,8 @@ variable "public_subnet_ids" {
   type        = list(string)
   default     = []
 }
+
+variable "codebuild_role_arn" {
+  description = "codebuild role arn"
+  type = string
+}
