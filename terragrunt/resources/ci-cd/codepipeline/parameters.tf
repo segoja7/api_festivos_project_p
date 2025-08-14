@@ -11,7 +11,8 @@ locals {
       # Configuración de Source (GitHub)
       github_owner = "segoja7"
       github_repo = "api_festivos_project_p"
-      github_branch = "master"
+#      github_branch = "master"
+      github_branch = "new_code_app"
       github_connection_name = "arq-avanzada-github-connection"
       
       # Configuración de Build (CodeBuild)
