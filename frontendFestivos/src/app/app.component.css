@@ -1,0 +1,49 @@
+mat-toolbar {
+    background: #004a9f;
+    color: white;
+}
+
+.centrar{
+    text-align: center; /* Centrar horizontalmente */
+    display: flex; /* Utilizamos flexbox para centrar verticalmente */
+    justify-content: center; /* Centrar horizontalmente con flexbox */
+    width: 100%; /* Ancho completo */
+}
+
+mat-sidenav {
+    background: #002b5c;
+    color: white;
+    padding: 16px 10px;
+    text-align: center;
+  
+    /* Solo redondea esquina superior izquierda e inferior izquierda */
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+  
+    /* Asegura que no haya otros bordes redondeados accidentales */
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+mat-sidenav-container {
+    height: calc(100vh);
+}
+
+.menu-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: 1rem;
+    border-radius: 0 !important;
+    
+}
+
+.menu-button:hover {
+    color: #002b5c;
+    background-color:white;
+}
+
+.spacer {
+    flex: 1 1 auto;
+}

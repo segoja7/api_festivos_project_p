@@ -1,0 +1,32 @@
+<mat-sidenav-container>
+  <mat-sidenav #menuLateral role="navigation">
+    <mat-nav-list>
+      <div *ngFor="let op of opciones; let i = index">
+        <button mat-icon-button [routerLink]="[op.url]" class="menu-button" (click)="menuLateral.toggle()">
+          <img [src]="op.icono">
+          <span>{{ op.titulo }}</span>
+        </button>
+      </div>
+      <button mat-icon-button class="menu-button" (click)="menuLateral.toggle()">
+        Cerrar
+      </button>
+
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar>
+      <button mat-icon-button class="example-icon" (click)="menuLateral.toggle()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <img src="imagenes/Festivos.jpg" height="80px">
+      <div class="centrar">
+        Calendario de Festivos por Nación
+      </div>
+
+      <span class="spacer"></span>
+
+    </mat-toolbar>
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>
