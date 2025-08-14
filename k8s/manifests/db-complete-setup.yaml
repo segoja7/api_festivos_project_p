@@ -32,95 +32,75 @@ spec:
               name: rds-secret
               key: DB_PASSWORD
         - name: PGDATABASE
-          value: "arquitectura_db"
+          value: "festivos"
         command:
         - /bin/bash
         - -c
         - |
-          echo "🚀 Setup completo de base de datos..."
+          echo "🚀 Setup completo de base de datos para '$PGDATABASE'..."
           
           # Esperar a que la base de datos esté disponible
           until pg_isready -h $PGHOST -p $PGPORT -U $PGUSER; do
-            echo "Esperando PostgreSQL..."
+            echo "Esperando PostgreSQL en $PGHOST..."
             sleep 2
           done
           
           echo "✅ PostgreSQL listo!"
           
-          # PASO 1: Limpieza completa
-          echo "🧹 Limpieza completa de la base de datos..."
-          psql -h $PGHOST -p $PGPORT -U $PGUSER -d arquitectura_db -c "
-          DROP TABLE IF EXISTS festivo CASCADE;
-          DROP TABLE IF EXISTS tipo CASCADE;
-          DROP TABLE IF EXISTS pais CASCADE;
-          DROP TABLE IF EXISTS cambiomoneda CASCADE;
-          DROP TABLE IF EXISTS moneda CASCADE;
-          DROP TABLE IF EXISTS usuario CASCADE;
-          DROP SEQUENCE IF EXISTS festivo_id_seq CASCADE;
-          DROP SEQUENCE IF EXISTS tipo_id_seq CASCADE;
-          DROP SEQUENCE IF EXISTS pais_id_seq CASCADE;
-          DROP SEQUENCE IF EXISTS secuencia_pais CASCADE;
-          DROP SEQUENCE IF EXISTS secuencia_tipo CASCADE;
+          # PASO 1: Limpieza completa de tablas existentes
+          echo "🧹 Limpiando tablas si existen..."
+          psql -h $PGHOST -p $PGPORT -U $PGUSER -d "$PGDATABASE" -c "
+            DROP TABLE IF EXISTS festivo CASCADE;
+            DROP TABLE IF EXISTS tipo CASCADE;
+            DROP TABLE IF EXISTS pais CASCADE;
           "
           
-          echo "✅ Base de datos limpia!"
+          echo "✅ Esquema limpio!"
           
-          # PASO 2: Crear tablas con scripts originales
-          echo "🏗️ Creando tablas con scripts originales..."
-          psql -h $PGHOST -p $PGPORT -U $PGUSER -d arquitectura_db -c "
-          --Crear la secuencia para TIPO
-          CREATE SEQUENCE secuencia_tipo START 1;
+          # PASO 2: Crear el esquema de tablas (DDL)
+          echo "🏗️ Creando tablas..."
+          psql -h $PGHOST -p $PGPORT -U $PGUSER -d "$PGDATABASE" -c "
+            CREATE TABLE Tipo(
+              Id SERIAL PRIMARY KEY,
+              Tipo VARCHAR(100) NOT NULL
+            );
 
-          --Crear la tabla TIPO
-          CREATE TABLE Tipo(
-            Id INT PRIMARY KEY DEFAULT nextval('secuencia_tipo'),
-            Tipo VARCHAR(100) NOT NULL
-          );
+            CREATE TABLE Pais(
+              Id SERIAL PRIMARY KEY,
+              Nombre VARCHAR(100) NOT NULL
+            );
 
-          --Crear la secuencia para PAIS
-          CREATE SEQUENCE secuencia_pais START 1;
-
-          --Crear la tabla PAIS
-          CREATE TABLE Pais(
-            Id INT PRIMARY KEY DEFAULT nextval('secuencia_pais'),
-            Nombre VARCHAR(100) NOT NULL
-          );
-
-          --Crear la tabla FESTIVO
-          CREATE TABLE Festivo(
-            Id SERIAL PRIMARY KEY,
-            IdPais INT NOT NULL,
-            CONSTRAINT fkFestivo_Pais FOREIGN KEY (IdPais) REFERENCES Pais(Id),
-            Nombre VARCHAR(100) NOT NULL,
-            Dia INT NOT NULL,
-            Mes INT NOT NULL,
-            DiasPascua INT NOT NULL,
-            IdTipo INT NOT NULL,
-            CONSTRAINT fkFestivo_Tipo FOREIGN KEY (IdTipo) REFERENCES Tipo(Id)
-          );
+            CREATE TABLE Festivo(
+              Id SERIAL PRIMARY KEY,
+              Nombre VARCHAR(100) NOT NULL,
+              Dia INT NOT NULL,
+              Mes INT NOT NULL,
+              DiasPascua INT NOT NULL,
+              IdTipo INT NOT NULL,
+              CONSTRAINT fkFestivo_Tipo FOREIGN KEY (IdTipo) REFERENCES Tipo(Id),
+              IdPais INT NOT NULL,
+              CONSTRAINT fkFestivo_Pais FOREIGN KEY (IdPais) REFERENCES Pais(Id)
+            );
           "
           
           echo "✅ Tablas creadas!"
           
-          # PASO 3: Insertar datos
-          echo "📝 Insertando datos..."
-          psql -h $PGHOST -p $PGPORT -U $PGUSER -d arquitectura_db -f /scripts/dml-festivos.sql
+          # PASO 3: Insertar datos desde el ConfigMap
+          echo "📝 Insertando datos (DML)..."
+          psql -h $PGHOST -p $PGPORT -U $PGUSER -d "$PGDATABASE" -f /scripts/dml-festivos.sql
           
-          echo "🎉 Setup completado!"
+          echo "🎉 Datos insertados!"
           
           # PASO 4: Verificar datos
           echo "🔍 Verificando datos insertados:"
           echo "Total de tipos:"
-          psql -h $PGHOST -p $PGPORT -U $PGUSER -d arquitectura_db -c "SELECT COUNT(*) FROM Tipo;"
+          psql -h $PGHOST -p $PGPORT -U $PGUSER -d "$PGDATABASE" -c "SELECT COUNT(*) FROM Tipo;"
           echo "Total de países:"
-          psql -h $PGHOST -p $PGPORT -U $PGUSER -d arquitectura_db -c "SELECT COUNT(*) FROM Pais;"
+          psql -h $PGHOST -p $PGPORT -U $PGUSER -d "$PGDATABASE" -c "SELECT COUNT(*) FROM Pais;"
           echo "Total de festivos:"
-          psql -h $PGHOST -p $PGPORT -U $PGUSER -d arquitectura_db -c "SELECT COUNT(*) FROM Festivo;"
+          psql -h $PGHOST -p $PGPORT -U $PGUSER -d "$PGDATABASE" -c "SELECT COUNT(*) FROM Festivo;"
           
-          echo "Festivos de Colombia (primeros 5):"
-          psql -h $PGHOST -p $PGPORT -U $PGUSER -d arquitectura_db -c "SELECT f.Nombre, f.Dia, f.Mes FROM Festivo f WHERE f.IdPais = 1 LIMIT 5;"
-          
-          echo "✅ Base de datos completamente configurada!"
+          echo "✅ Base de datos '$PGDATABASE' completamente configurada!"
         volumeMounts:
         - name: sql-scripts
           mountPath: /scripts
