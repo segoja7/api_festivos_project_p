@@ -22,6 +22,9 @@ phases:
       - echo "Dynamically updating RDS secret ARN in manifest..."
       - cd k8s/manifests
       - sed -i "s|__RDS_SECRET_ARN__|${RDS_SECRET_ARN}|g" external-secret.yaml
+      - echo "Dynamically updating JWT secret ARN in manifest..."
+      - sed -i "s|__JWT_SECRET_ARN__|${JWT_SECRET_ARN}|g" external-secret.yaml
+
       - echo "Manifest updated:"
       - cat external-secret.yaml
 
