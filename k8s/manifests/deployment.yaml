@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: festivos-api
-        image: 476114125818.dkr.ecr.us-east-1.amazonaws.com/arquitectura-avanzada-app:latest
+        image: 214624958371.dkr.ecr.us-east-1.amazonaws.com/arquitectura-avanzada-app:latest
         ports:
         - containerPort: 8080
           name: http
