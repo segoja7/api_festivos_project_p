@@ -21,13 +21,7 @@ phases:
       - aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $EKS_CLUSTER_NAME
       - echo "Verifying cluster connection..."
       - kubectl get nodes
-
-      # Obtener RDS endpoint dinámicamente
-      - echo "Getting RDS endpoint from Secrets Manager..."
-      - RDS_CREDENTIALS=$(aws secretsmanager get-secret-value --secret-id "$RDS_SECRET_ARN" --query SecretString --output text)
-      - export RDS_ENDPOINT=$(echo $RDS_CREDENTIALS | jq -r .host)
-      - echo "RDS Endpoint = $RDS_ENDPOINT"
-
+      
       # Configurar variables para templates (usando variables de CodeBuild)
       - export AWS_REGION=$AWS_DEFAULT_REGION
       - export API_REPLICAS=2
@@ -42,7 +36,7 @@ phases:
       - export FRONTEND_CPU_LIMIT="200m"
       - export API_IMAGE_TAG="api-latest"
       - export FRONTEND_IMAGE_TAG="frontend-latest"
-
+      
       - echo "Environment variables configured:"
       - echo "  ECR_REPOSITORY_URI = $ECR_REPOSITORY_URI"
       - echo "  RDS_ENDPOINT = $RDS_ENDPOINT"
@@ -54,10 +48,10 @@ phases:
     commands:
       - echo "Generating dynamic manifests with envsubst..."
       - cd k8s
-
+      
       # Crear directorio de manifiestos generados
       - mkdir -p manifests-generated
-
+      
       # Generar manifiestos desde templates usando envsubst
       - echo "Processing templates with envsubst..."
       - |
@@ -69,17 +63,17 @@ phases:
             echo "  Generated: manifests-generated/$filename"
           fi
         done
-
+      
       # Copiar manifiestos estáticos que no necesitan templating
       - echo "Copying static manifests..."
       - cp manifests/db-complete-setup.yaml manifests-generated/ 2>/dev/null || echo "  db-complete-setup.yaml not found"
       - cp manifests/external-secrets-serviceaccount.yaml manifests-generated/ 2>/dev/null || echo "  external-secrets-serviceaccount.yaml not found"
       - cp manifests/sql-scripts-original.yaml manifests-generated/ 2>/dev/null || echo "  sql-scripts-original.yaml not found"
-
+      
       # Mostrar manifiestos generados para debug
       - echo "Generated manifests:"
       - ls -la manifests-generated/
-
+      
       # Aplicar manifiestos
       - echo "Applying dynamic manifests..."
       - kubectl apply -f manifests-generated/
@@ -89,17 +83,17 @@ phases:
       - echo "Waiting for deployments to complete..."
       - kubectl rollout status deployment/$APP_NAME-api -n $NAMESPACE --timeout=300s || echo "API deployment timeout"
       - kubectl rollout status deployment/$APP_NAME-frontend -n $NAMESPACE --timeout=300s || echo "Frontend deployment timeout"
-
+      
       - echo "Verifying services and ingress..."
       - kubectl get service -n $NAMESPACE
       - kubectl get ingress -n $NAMESPACE
-
+      
       - echo "Getting ALB URL..."
       - ALB_URL=$(kubectl get ingress -n $NAMESPACE $APP_NAME-app-ingress-alb -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "ALB URL not ready yet")
       - echo "ALB URL = $ALB_URL"
       - echo "Frontend URL = http://$ALB_URL"
       - echo "API URL = http://$ALB_URL/api"
-
+      
       - echo "Deployment completed successfully on $(date)"
 
 artifacts:
