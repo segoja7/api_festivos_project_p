@@ -19,18 +19,26 @@ phases:
   
   build:
     commands:
-      - echo "Dynamically updating RDS secret ARN in manifest..."
-      - cd k8s/manifests
-      - sed -i "s|__RDS_SECRET_ARN__|${RDS_SECRET_ARN}|g" external-secret.yaml
-      - echo "Dynamically updating JWT secret ARN in manifest..."
-      - sed -i "s|__JWT_SECRET_ARN__|${JWT_SECRET_ARN}|g" external-secret.yaml
+      - echo "Generating dynamic external-secret manifest..."
+      - cd k8s
 
-      - echo "Manifest updated:"
-      - cat external-secret.yaml
+      # Instalar envsubst si no está disponible
+      - yum install -y gettext
+
+      # Configurar variables para el template
+      - export AWS_REGION=$AWS_DEFAULT_REGION
+      - export RDS_ENDPOINT=$(aws secretsmanager get-secret-value --secret-id "$RDS_SECRET_ARN" --query SecretString --output text | jq -r .host)
+
+      # Generar external-secret desde template
+      - echo "Processing external-secret template..."
+      - envsubst < templates/external-secret.yaml.tpl > manifests/external-secret.yaml
+
+      - echo "Generated external-secret manifest:"
+      - cat manifests/external-secret.yaml
 
       - echo "Applying security and secret manifests..."
-      - kubectl apply -f external-secrets-serviceaccount.yaml -n festivos-api
-      - kubectl apply -f external-secret.yaml -n festivos-api
+      - kubectl apply -f manifests/external-secrets-serviceaccount.yaml -n festivos-api
+      - kubectl apply -f manifests/external-secret.yaml -n festivos-api
       
       - echo "Waiting for ExternalSecret 'rds-credentials' to be ready..."
       - kubectl wait --for=condition=Ready externalsecret/rds-credentials -n festivos-api --timeout=2m
