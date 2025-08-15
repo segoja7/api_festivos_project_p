@@ -1,0 +1,104 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Installing kubectl..."
+      - curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.27.1/2023-04-19/bin/linux/amd64/kubectl
+      - chmod +x ./kubectl
+      - mv ./kubectl /usr/local/bin
+      - echo "Installing jq..."
+      - yum install -y jq
+      - echo "Verifying installations..."
+      - kubectl version --client
+      - jq --version
+  pre_build:
+    commands:
+      - echo "Deploy phase started on $(date)"
+      - echo "Configuring kubectl for EKS cluster..."
+      - aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $EKS_CLUSTER_NAME
+      - echo "Verifying cluster connection..."
+      - kubectl get nodes
+      - echo "Getting image info..."
+      - |
+        if [ -f "build-info.json" ]; then
+          echo "Found build-info.json, reading image info from file..."
+          cat build-info.json
+          API_IMAGE_URI=$(cat build-info.json | jq -r ".api_image_uri")
+          FRONTEND_IMAGE_URI=$(cat build-info.json | jq -r ".frontend_image_uri")
+          IMAGE_TAG=$(cat build-info.json | jq -r ".image_tag")
+        else
+          echo "build-info.json not found, generating image info from environment variables..."
+          COMMIT_HASH=$(echo ${CODEBUILD_RESOLVED_SOURCE_VERSION:-latest} | cut -c 1-7)
+          IMAGE_TAG=${COMMIT_HASH:-latest}
+          API_IMAGE_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:api-${IMAGE_TAG}
+          FRONTEND_IMAGE_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:frontend-${IMAGE_TAG}
+          echo "Generated image info:"
+          printf '{"api_image_uri":"%s","frontend_image_uri":"%s","image_tag":"%s","commit_hash":"%s","build_time":"%s"}' "$API_IMAGE_URI" "$FRONTEND_IMAGE_URI" "$IMAGE_TAG" "$COMMIT_HASH" "$(date)"
+        fi
+      - echo "API Image URI = $API_IMAGE_URI"
+      - echo "Frontend Image URI = $FRONTEND_IMAGE_URI"
+      - echo "Image Tag = $IMAGE_TAG"
+  build:
+    commands:
+      - echo "Updating Kubernetes manifests..."
+      - cd k8s/manifests
+      
+      # Update API deployment
+      - echo "Original API deployment.yaml:"
+      - cat deployment.yaml
+      - echo "Updating API image in deployment.yaml..."
+      - sed -i "s|image:.*|image: ${API_IMAGE_URI}|g" deployment.yaml
+      - echo "Updated API deployment.yaml:"
+      - cat deployment.yaml
+      
+      # Update Frontend deployment
+      - echo "Original Frontend deployment:"
+      - cat frontend-complete.yaml
+      - echo "Updating Frontend image in frontend-complete.yaml..."
+      - sed -i "s|<ECR_REPOSITORY_URI>/festivos-frontend:latest|${FRONTEND_IMAGE_URI}|g" frontend-complete.yaml
+      - echo "Updated Frontend deployment:"
+      - cat frontend-complete.yaml
+      
+      - echo "Applying application manifests..."
+      
+      # Deploy API
+      - kubectl apply -f deployment.yaml
+      - kubectl apply -f service.yaml
+      
+      # Deploy Frontend
+      - kubectl apply -f frontend-complete.yaml
+      
+      # Deploy new combined ingress (and remove old one if exists)
+      - kubectl delete ingress festivos-api-ingress-alb -n festivos-api --ignore-not-found=true
+      - kubectl apply -f app-ingress-alb.yaml
+      
+  post_build:
+    commands:
+      - echo "Waiting for API deployment to complete..."
+      - kubectl rollout status deployment/festivos-api -n festivos-api --timeout=300s
+      
+      - echo "Waiting for Frontend deployment to complete..."
+      - kubectl rollout status deployment/festivos-frontend -n festivos-api --timeout=300s
+      
+      - echo "Verifying deployments..."
+      - kubectl get pods -n festivos-api -l app=festivos-api
+      - kubectl get pods -n festivos-api -l app=festivos-frontend
+      - kubectl get service -n festivos-api
+      - kubectl get ingress -n festivos-api
+      
+      - echo "Getting ALB URL..."
+      - ALB_URL=$(kubectl get ingress -n festivos-api festivos-app-ingress-alb -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "ALB URL not ready yet")
+      - echo "ALB URL = $ALB_URL"
+      - echo "Frontend URL = http://$ALB_URL"
+      - echo "API URL = http://$ALB_URL/api"
+      
+      - echo "Deployment completed successfully on $(date)"
+      - echo "Creating deployment summary..."
+      - printf "{\"deployment_time\":\"%s\",\"api_image_uri\":\"%s\",\"frontend_image_uri\":\"%s\",\"image_tag\":\"%s\",\"alb_url\":\"%s\",\"frontend_url\":\"http://%s\",\"api_url\":\"http://%s/api\",\"status\":\"success\"}" "$(date)" "$API_IMAGE_URI" "$FRONTEND_IMAGE_URI" "$IMAGE_TAG" "$ALB_URL" "$ALB_URL" "$ALB_URL" > deployment-summary.json
+      - cat deployment-summary.json
+
+artifacts:
+  files:
+    - deployment-summary.json
+  name: DeployArtifact
