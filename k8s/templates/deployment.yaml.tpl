@@ -19,13 +19,8 @@ spec:
         version: v1
     spec:
       containers:
-<<<<<<< HEAD:k8s/manifests/deployment.yaml
-      - name: festivos-api
-        image: 214624958371.dkr.ecr.us-east-1.amazonaws.com/arquitectura-avanzada-app:latest
-=======
       - name: ${APP_NAME}-api
         image: ${ECR_REPOSITORY_URI}:${API_IMAGE_TAG}
->>>>>>> new_code_app:k8s/templates/deployment.yaml.tpl
         ports:
         - containerPort: 8080
           name: http
@@ -35,7 +30,7 @@ spec:
           value: "${ENVIRONMENT}"
         - name: SERVER_PORT
           value: "8080"
-        
+
         # Database configuration from External Secrets (RDS)
         - name: SPRING_DATASOURCE_URL
           valueFrom:
@@ -57,14 +52,14 @@ spec:
             secretKeyRef:
               name: rds-secret
               key: SPRING_DATASOURCE_DRIVER_CLASS_NAME
-        
+
         # JWT Secret from External Secrets
         - name: JWT_SECRET
           valueFrom:
             secretKeyRef:
               name: jwt-secret
               key: JWT_SECRET
-        
+
         # JPA/Hibernate configuration
         - name: SPRING_JPA_HIBERNATE_DDL_AUTO
           value: "validate"
@@ -72,13 +67,13 @@ spec:
           value: "false"
         - name: SPRING_JPA_DATABASE_PLATFORM
           value: "org.hibernate.dialect.PostgreSQLDialect"
-        
+
         # Actuator configuration
         - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
           value: "health,info,metrics"
         - name: MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS
           value: "always"
-        
+
         resources:
           requests:
             memory: "${API_MEMORY_REQUEST}"
