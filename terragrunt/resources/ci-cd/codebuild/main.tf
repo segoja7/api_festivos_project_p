@@ -62,7 +62,7 @@ resource "aws_codebuild_project" "build_project" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = "terragrunt/resources/ci-cd/codepipeline/buildspecs/buildspec-fase1-build-fullstack.yml"
+    buildspec = "terragrunt/resources/ci-cd/codepipeline/buildspecs/buildspec-parallel-build.yml"
   }
 
   tags = merge(local.workspace.tags, {
