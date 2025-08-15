@@ -1,0 +1,57 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Installing jq..."
+      - yum install -y jq
+      - echo "Installing Node.js 18..."
+      - curl -fsSL https://rpm.nodesource.com/setup_18.x | bash -
+      - yum install -y nodejs
+      - node --version
+      - npm --version
+
+  pre_build:
+    commands:
+      - echo "Logging in to Docker Hub..."
+      - DOCKERHUB_CREDENTIALS=$(aws secretsmanager get-secret-value --secret-id "$DOCKERHUB_SECRET_ARN" --query SecretString --output text)
+      - DOCKERHUB_USERNAME=$(echo $DOCKERHUB_CREDENTIALS | jq -r .username)
+      - DOCKERHUB_PASSWORD=$(echo $DOCKERHUB_CREDENTIALS | jq -r .password)
+      - echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
+
+      - echo "Docker version:"
+      - docker --version
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
+      - echo "Repository URI = $REPOSITORY_URI"
+      - echo "Image tag = $IMAGE_TAG"
+      - echo "Frontend Build started on `date`"
+  
+  build:
+    commands:
+      - echo "Frontend Build phase started on `date`"
+      - echo "Building the Frontend Docker image..."
+      - cd frontendFestivos
+      - docker build -t $IMAGE_REPO_NAME:frontend-$IMAGE_TAG .
+      - docker tag $IMAGE_REPO_NAME:frontend-$IMAGE_TAG $REPOSITORY_URI:frontend-$IMAGE_TAG
+      - docker tag $IMAGE_REPO_NAME:frontend-$IMAGE_TAG $REPOSITORY_URI:frontend-latest
+      - echo "Frontend Docker image built successfully"
+  
+  post_build:
+    commands:
+      - echo "Frontend Build completed on `date`"
+      - echo "Pushing the Frontend Docker images..."
+      - docker push $REPOSITORY_URI:frontend-$IMAGE_TAG
+      - docker push $REPOSITORY_URI:frontend-latest
+      - echo "Frontend Docker images pushed successfully"
+      - echo "Creating Frontend build info file..."
+      - printf '{"frontend_image_uri":"%s","image_tag":"%s","commit_hash":"%s","build_time":"%s","component":"frontend"}' $REPOSITORY_URI:frontend-$IMAGE_TAG $IMAGE_TAG $COMMIT_HASH "$(date)" > frontend-build-info.json
+      - cat frontend-build-info.json
+
+artifacts:
+  files:
+    - frontend-build-info.json
+  name: FrontendBuildArtifact

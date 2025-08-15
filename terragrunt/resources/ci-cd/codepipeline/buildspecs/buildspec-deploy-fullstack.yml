@@ -19,71 +19,110 @@ phases:
       - aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $EKS_CLUSTER_NAME
       - echo "Verifying cluster connection..."
       - kubectl get nodes
-      - echo "Getting image info..."
+      - echo "Getting image info from build artifacts..."
       - |
-        if [ -f "build-info.json" ]; then
-          echo "Found build-info.json, reading image info from file..."
-          cat build-info.json
-          API_IMAGE_URI=$(cat build-info.json | jq -r ".api_image_uri")
-          FRONTEND_IMAGE_URI=$(cat build-info.json | jq -r ".frontend_image_uri")
-          IMAGE_TAG=$(cat build-info.json | jq -r ".image_tag")
-        else
-          echo "build-info.json not found, generating image info from environment variables..."
+        # Initialize variables
+        API_IMAGE_URI=""
+        FRONTEND_IMAGE_URI=""
+        IMAGE_TAG=""
+        
+        # Try to read API build info
+        if [ -f "api-build-info.json" ]; then
+          echo "Found api-build-info.json:"
+          cat api-build-info.json
+          API_IMAGE_URI=$(cat api-build-info.json | jq -r ".api_image_uri")
+          IMAGE_TAG=$(cat api-build-info.json | jq -r ".image_tag")
+        fi
+        
+        # Try to read Frontend build info
+        if [ -f "frontend-build-info.json" ]; then
+          echo "Found frontend-build-info.json:"
+          cat frontend-build-info.json
+          FRONTEND_IMAGE_URI=$(cat frontend-build-info.json | jq -r ".frontend_image_uri")
+          if [ -z "$IMAGE_TAG" ]; then
+            IMAGE_TAG=$(cat frontend-build-info.json | jq -r ".image_tag")
+          fi
+        fi
+        
+        # Fallback to environment variables if files not found
+        if [ -z "$API_IMAGE_URI" ] || [ -z "$FRONTEND_IMAGE_URI" ]; then
+          echo "Build info files not found or incomplete, generating from environment variables..."
           COMMIT_HASH=$(echo ${CODEBUILD_RESOLVED_SOURCE_VERSION:-latest} | cut -c 1-7)
           IMAGE_TAG=${COMMIT_HASH:-latest}
-          API_IMAGE_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:api-${IMAGE_TAG}
-          FRONTEND_IMAGE_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:frontend-${IMAGE_TAG}
-          echo "Generated image info:"
-          printf '{"api_image_uri":"%s","frontend_image_uri":"%s","image_tag":"%s","commit_hash":"%s","build_time":"%s"}' "$API_IMAGE_URI" "$FRONTEND_IMAGE_URI" "$IMAGE_TAG" "$COMMIT_HASH" "$(date)"
+          if [ -z "$API_IMAGE_URI" ]; then
+            API_IMAGE_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:api-${IMAGE_TAG}
+          fi
+          if [ -z "$FRONTEND_IMAGE_URI" ]; then
+            FRONTEND_IMAGE_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:frontend-${IMAGE_TAG}
+          fi
         fi
-      - echo "API Image URI = $API_IMAGE_URI"
-      - echo "Frontend Image URI = $FRONTEND_IMAGE_URI"
-      - echo "Image Tag = $IMAGE_TAG"
+        
+        echo "Final image URIs:"
+        echo "API Image URI = $API_IMAGE_URI"
+        echo "Frontend Image URI = $FRONTEND_IMAGE_URI"
+        echo "Image Tag = $IMAGE_TAG"
   build:
     commands:
       - echo "Updating Kubernetes manifests..."
       - cd k8s/manifests
       
-      # Update API deployment
-      - echo "Original API deployment.yaml:"
-      - cat deployment.yaml
-      - echo "Updating API image in deployment.yaml..."
-      - sed -i "s|image:.*|image: ${API_IMAGE_URI}|g" deployment.yaml
-      - echo "Updated API deployment.yaml:"
-      - cat deployment.yaml
+      # Update API deployment if API image is available
+      - |
+        if [ -n "$API_IMAGE_URI" ]; then
+          echo "Updating API deployment..."
+          echo "Original API deployment.yaml:"
+          cat deployment.yaml
+          sed -i "s|image:.*|image: ${API_IMAGE_URI}|g" deployment.yaml
+          echo "Updated API deployment.yaml:"
+          cat deployment.yaml
+          echo "Applying API manifests..."
+          kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml
+        else
+          echo "No API image URI found, skipping API deployment update"
+        fi
       
-      # Update Frontend deployment
-      - echo "Original Frontend deployment:"
-      - cat frontend-complete.yaml
-      - echo "Updating Frontend image in frontend-complete.yaml..."
-      - sed -i "s|<ECR_REPOSITORY_URI>/festivos-frontend:latest|${FRONTEND_IMAGE_URI}|g" frontend-complete.yaml
-      - echo "Updated Frontend deployment:"
-      - cat frontend-complete.yaml
+      # Update Frontend deployment if Frontend image is available
+      - |
+        if [ -n "$FRONTEND_IMAGE_URI" ]; then
+          echo "Updating Frontend deployment..."
+          echo "Original Frontend deployment:"
+          cat frontend-complete.yaml
+          sed -i "s|<ECR_REPOSITORY_URI>/festivos-frontend:latest|${FRONTEND_IMAGE_URI}|g" frontend-complete.yaml
+          echo "Updated Frontend deployment:"
+          cat frontend-complete.yaml
+          echo "Applying Frontend manifests..."
+          kubectl apply -f frontend-complete.yaml
+        else
+          echo "No Frontend image URI found, skipping Frontend deployment update"
+        fi
       
-      - echo "Applying application manifests..."
-      
-      # Deploy API
-      - kubectl apply -f deployment.yaml
-      - kubectl apply -f service.yaml
-      
-      # Deploy Frontend
-      - kubectl apply -f frontend-complete.yaml
-      
-      # Deploy new combined ingress (and remove old one if exists)
+      # Deploy/Update combined ingress
+      - echo "Applying combined ingress..."
       - kubectl delete ingress festivos-api-ingress-alb -n festivos-api --ignore-not-found=true
       - kubectl apply -f app-ingress-alb.yaml
       
   post_build:
     commands:
-      - echo "Waiting for API deployment to complete..."
-      - kubectl rollout status deployment/festivos-api -n festivos-api --timeout=300s
+      - echo "Waiting for deployments to complete..."
       
-      - echo "Waiting for Frontend deployment to complete..."
-      - kubectl rollout status deployment/festivos-frontend -n festivos-api --timeout=300s
+      # Wait for API deployment if it was updated
+      - |
+        if [ -n "$API_IMAGE_URI" ]; then
+          echo "Waiting for API deployment to complete..."
+          kubectl rollout status deployment/festivos-api -n festivos-api --timeout=300s
+          kubectl get pods -n festivos-api -l app=festivos-api
+        fi
       
-      - echo "Verifying deployments..."
-      - kubectl get pods -n festivos-api -l app=festivos-api
-      - kubectl get pods -n festivos-api -l app=festivos-frontend
+      # Wait for Frontend deployment if it was updated
+      - |
+        if [ -n "$FRONTEND_IMAGE_URI" ]; then
+          echo "Waiting for Frontend deployment to complete..."
+          kubectl rollout status deployment/festivos-frontend -n festivos-api --timeout=300s
+          kubectl get pods -n festivos-api -l app=festivos-frontend
+        fi
+      
+      - echo "Verifying services and ingress..."
       - kubectl get service -n festivos-api
       - kubectl get ingress -n festivos-api
       
