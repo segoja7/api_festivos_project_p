@@ -1,6 +1,9 @@
 ################################################################################
 # CodePipeline Parameters - Terragrunt Native Approach
 ################################################################################
+data "aws_caller_identity" "account" {}
+
+# data "aws_region" "current" {}
 
 locals {
   env = {
@@ -33,12 +36,12 @@ locals {
       environment_variables = {
         AWS_DEFAULT_REGION = {
           name  = "AWS_DEFAULT_REGION"
-          value = "us-east-1"
+          value = data.aws_region.current.name
           type  = "PLAINTEXT"
         },
         AWS_ACCOUNT_ID = {
           name  = "AWS_ACCOUNT_ID"
-          value = "476114125818"
+          value = data.aws_caller_identity.account.account_id
           type  = "PLAINTEXT"
         },
         IMAGE_REPO_NAME = {

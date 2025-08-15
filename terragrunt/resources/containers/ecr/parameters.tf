@@ -64,8 +64,7 @@ locals {
       
       # Permisos de acceso al repositorio
       repository_read_write_access_arns = [
-        "arn:aws:iam::476114125818:user/udea",
-        "arn:aws:iam::476114125818:user/iamadmin_gnral"
+        "*"
       ]
       
       # Configuración de creación de recursos

@@ -7,7 +7,7 @@ include "root" {
 #   config_path = "${get_parent_terragrunt_dir("root")}/resources/containers/addons"
 #   mock_outputs = {
 #     external_secrets = {
-#       iam_role_arn = "arn:aws:iam::476114125818:role/external-secrets-mock"
+#       iam_role_arn = "arn:aws:iam::<>:role/external-secrets-mock"
 #     }
 #   }
 #   mock_outputs_merge_strategy_with_state = "shallow"

@@ -15,7 +15,7 @@ dependency "eks" {
     cluster_name                         = "arquitectura-avanzada-eks"
     cluster_endpoint                     = "https://mock-endpoint.eks.us-east-1.amazonaws.com"
     cluster_version                      = "1.33"
-    oidc_provider_arn                    = "arn:aws:iam::476114125818:oidc-provider/mock-oidc-provider"
+    oidc_provider_arn                    = "arn:aws:iam::<account>:oidc-provider/mock-oidc-provider"
     cluster_certificate_authority_data   = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0t"
   }
   mock_outputs_merge_strategy_with_state = "shallow"

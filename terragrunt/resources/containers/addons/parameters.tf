@@ -1,6 +1,9 @@
 ################################################################################
 # EKS Blueprints Addons Parameters - Terragrunt Native Approach
 ################################################################################
+data "aws_caller_identity" "account" {}
+
+# data "aws_region" "current" {}
 
 locals {
   env = {
@@ -71,7 +74,7 @@ locals {
           },
           {
             name  = "region"
-            value = "us-east-1"
+            value = data.aws_region.current.name
           },
           {
             name  = "vpcId"
@@ -242,11 +245,11 @@ locals {
       
       # ARNs para External Secrets (acceso a Secrets Manager)
       external_secrets_secrets_manager_arns = [
-        "arn:aws:secretsmanager:us-east-1:476114125818:secret:*"
+        "arn:aws:secretsmanager:us-east-1:${data.aws_caller_identity.account.account_id}:secret:*"
       ]
       
       external_secrets_kms_key_arns = [
-        "arn:aws:kms:us-east-1:476114125818:key/*"
+        "arn:aws:kms:us-east-1:${data.aws_caller_identity.account.account_id}:key/*"
       ]
 
       # Kube Prometheus Stack
