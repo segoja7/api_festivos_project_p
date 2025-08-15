@@ -63,5 +63,5 @@ inputs = {
   dockerhub_secret_arn  = dependency.secrets_manager.outputs.secrets["dockerhub"].arn
   codepipeline_role_arn =  dependency.role.outputs.codepipeline_role_arn
   codebuild_role_arn =  dependency.role.outputs.codebuild_role_arn
-  rds_endpoint = dependency.rds.outputs.db_instance_endpoint
+  rds_endpoint = dependency.rds.outputs.db_instance_address
 }

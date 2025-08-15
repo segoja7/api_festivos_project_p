@@ -31,13 +31,13 @@ spec:
       type: Opaque
       data:
         # Spring Boot database configuration
-        SPRING_DATASOURCE_URL: "jdbc:postgresql://${RDS_ENDPOINT}:${RDS_PORT}/${DB_NAME}"
+        SPRING_DATASOURCE_URL: "jdbc:postgresql://${RDS_ENDPOINT}:${DB_PORT}/${DB_NAME}"
         SPRING_DATASOURCE_USERNAME: "{{ .username }}"
         SPRING_DATASOURCE_PASSWORD: "{{ .password }}"
         SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.postgresql.Driver"
         # Individual values for flexibility
         DB_HOST: "${RDS_ENDPOINT}"
-        DB_PORT: "${RDS_PORT}"
+        DB_PORT: "${DB_PORT}"
         DB_NAME: "${DB_NAME}"
         DB_USERNAME: "{{ .username }}"
         DB_PASSWORD: "{{ .password }}"
