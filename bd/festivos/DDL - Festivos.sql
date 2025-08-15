@@ -1,7 +1,7 @@
 --Ejecutar primero
 DROP DATABASE Festivos WITH (FORCE);
 --Ejecutar segundo
-CREATE DATABASE Festivos; 
+CREATE DATABASE Festivos;
 
 --Para las siguientes instrucciones, se debe cambiar la conexión
 
@@ -11,13 +11,9 @@ CREATE TABLE Tipo(
 	Tipo VARCHAR(100) NOT NULL
 	);
 
---Crear la secuencia para PAIS
-CREATE SEQUENCE secuencia_pais START 1;
-
 --Crear la tabla PAIS
 CREATE TABLE Pais(
---    Id SERIAL PRIMARY KEY,
-	Id INT PRIMARY KEY DEFAULT nextval('secuencia_pais'),
+	Id SERIAL PRIMARY KEY,
 	Nombre VARCHAR(100) NOT NULL
 	);
 
@@ -33,3 +29,23 @@ CREATE TABLE Festivo(
 	IdTipo INT NOT NULL,
 	CONSTRAINT fkFestivo_Tipo FOREIGN KEY (IdTipo) REFERENCES Tipo(Id)
 	);
+
+--Crear secuencias
+CREATE SEQUENCE secuencia_pais
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    OWNED BY pais.id;
+
+CREATE SEQUENCE secuencia_tipo
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    OWNED BY tipo.id;
+
+
+CREATE SEQUENCE secuencia_festivo
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    OWNED BY festivo.id;

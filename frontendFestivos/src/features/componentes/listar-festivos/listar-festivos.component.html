@@ -1,0 +1,24 @@
+<div mat-dialog-content>
+    <h2>{{datos.encabezado}}</h2>
+
+
+    <mat-form-field appearance="fill">
+        <mat-label>País</mat-label>
+        <mat-select [(value)]="paisEscogido">
+            <mat-option *ngFor="let p of datos.paises" [value]="p">
+                {{p.nombre }}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+        <mat-label>Año</mat-label>
+        <input matInput [(ngModel)]="year">
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="listar()">Listar</button>
+    <ngx-datatable class="dark" [rows]="fechasFestivas" [columns]="columnas"
+    [rowHeight]="'auto'" [headerHeight]="50" [footerHeight]="50" [limit]="10" 
+    [columnMode]="modoColumna.force" ></ngx-datatable>
+</div>
+<div mat-dialog-actions>
+    <button mat-raised-button color="primary" (click)="cerrar()">Cerrar</button>
+</div>

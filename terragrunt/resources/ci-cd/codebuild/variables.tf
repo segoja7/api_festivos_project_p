@@ -32,3 +32,21 @@ variable "codebuild_role_arn" {
   type = string
   description = "codebuild_role_arn"
 }
+
+# Variables adicionales para manifiestos dinámicos
+variable "aws_account_id" {
+  description = "AWS Account ID"
+  type        = string
+  default     = ""
+}
+
+variable "aws_region" {
+  description = "AWS Region"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "rds_endpoint" {
+  description = "RDS endpoint from the database module"
+  type        = string
+}

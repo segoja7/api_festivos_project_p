@@ -24,7 +24,7 @@ locals {
       storage_encrypted    = true   # Siempre encriptado
       
       # Base de datos
-      db_name  = "arquitectura_db"
+      db_name  = "festivos"
       username = "postgres_admin"
       port     = "5432"
       

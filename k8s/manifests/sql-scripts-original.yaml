@@ -4,48 +4,14 @@ metadata:
   name: sql-scripts-original
   namespace: festivos-api
 data:
-  ddl-festivos.sql: |
-    -- Script DDL original adaptado para arquitectura_db
-    \c arquitectura_db;
-
-    --Crear la tabla TIPO
-    CREATE TABLE Tipo(
-    	Id SERIAL PRIMARY KEY,
-    	Tipo VARCHAR(100) NOT NULL
-    	);
-
-    --Crear la secuencia para PAIS
-    CREATE SEQUENCE secuencia_pais START 1;
-
-    --Crear la tabla PAIS
-    CREATE TABLE Pais(
-    	Id INT PRIMARY KEY DEFAULT nextval('secuencia_pais'),
-    	Nombre VARCHAR(100) NOT NULL
-    	);
-
-    --Crear la tabla FESTIVO
-    CREATE TABLE Festivo(
-    	Id SERIAL PRIMARY KEY,
-    	IdPais INT NOT NULL,
-    	CONSTRAINT fkFestivo_Pais FOREIGN KEY (IdPais) REFERENCES Pais(Id),
-    	Nombre VARCHAR(100) NOT NULL,
-    	Dia INT NOT NULL,
-    	Mes INT NOT NULL,
-    	DiasPascua INT NOT NULL,
-    	IdTipo INT NOT NULL,
-    	CONSTRAINT fkFestivo_Tipo FOREIGN KEY (IdTipo) REFERENCES Tipo(Id)
-    	);
   dml-festivos.sql: |
-    -- Script DML original adaptado para arquitectura_db
-    \c arquitectura_db;
-
     --Registros tabla TIPO
     INSERT INTO Tipo(Id, Tipo) VALUES(1, 'Fijo');
     INSERT INTO Tipo(Id, Tipo) VALUES(2, 'Ley Puente Festivo');
     INSERT INTO Tipo(Id, Tipo) VALUES(3, 'Basado en Pascua');
     INSERT INTO Tipo(Id, Tipo) VALUES(4, 'Basado en Pascua y Ley Puente Festivo');
     INSERT INTO Tipo(Id, Tipo) VALUES(5, 'Ley Puente Festivo Viernes');
-
+    
     --Registros tabla PAIS
     INSERT INTO Pais (Id, Nombre) VALUES( 1,'COLOMBIA');
     INSERT INTO Pais (Id, Nombre) VALUES( 2,'ARGENTINA');
@@ -68,7 +34,7 @@ data:
     INSERT INTO Pais (Id, Nombre) VALUES(19,'URUGUAY');
     INSERT INTO Pais (Id, Nombre) VALUES(20,'VENEZUELA');
     INSERT INTO Pais (Id, Nombre) VALUES(21,'ESPAÑA');
-
+    
     --Registros tabla FESTIVO
     INSERT INTO Festivo (IdPais, Dia, Mes, Nombre, IdTipo, DiasPascua) VALUES(1, 1, 1, 'Año nuevo', 1, 0);
     INSERT INTO Festivo (IdPais, Dia, Mes, Nombre, IdTipo, DiasPascua) VALUES(1, 6, 1, 'Santos Reyes', 2, 0);
@@ -89,7 +55,7 @@ data:
     INSERT INTO Festivo (IdPais, Dia, Mes, Nombre, IdTipo, DiasPascua) VALUES(1, 11, 11, 'Independencia de Cartagena', 2, 0);
     INSERT INTO Festivo (IdPais, Dia, Mes, Nombre, IdTipo, DiasPascua) VALUES(1, 8, 12, 'Inmaculada Concepción', 1, 0);
     INSERT INTO Festivo (IdPais, Dia, Mes, Nombre, IdTipo, DiasPascua) VALUES(1, 25, 12, 'Navidad', 1, 0);
-
+    
     INSERT INTO Festivo (IdPais, Dia, Mes, Nombre, IdTipo, DiasPascua) VALUES(10, 1, 1, 'Año nuevo', 1, 0);
     INSERT INTO Festivo (IdPais, Dia, Mes, Nombre, IdTipo, DiasPascua) VALUES(10, 0, 0, 'Carnaval 1', 3, -43);
     INSERT INTO Festivo (IdPais, Dia, Mes, Nombre, IdTipo, DiasPascua) VALUES(10, 0, 0, 'Carnaval 2', 3, -42);

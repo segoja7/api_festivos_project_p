@@ -1,0 +1,24 @@
+<div mat-dialog-content>
+    <h2>Verificar Fecha</h2>
+    <mat-form-field appearance="fill">
+        <mat-label>País</mat-label>
+        <mat-select [(value)]="paisEscogido">
+            <mat-option *ngFor="let p of datos.paises" [value]="p">
+                {{p.nombre }}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+        <mat-label>Seleccionar fecha</mat-label>
+        <input matInput [matDatepicker]="picker" [(ngModel)]="fechaSeleccionada">
+        <mat-hint>MM/DD/YYYY</mat-hint>
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+    <br>
+    <button mat-raised-button color="primary" (click)="validarFecha()">Validar fecha</button>
+    <label>{{ resultado }}</label>
+</div>
+<div mat-dialog-actions>
+    <button mat-raised-button color="primary" (click)="cerrar()">Cerrar</button>
+</div>

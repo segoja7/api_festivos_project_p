@@ -1,0 +1,44 @@
+<div mat-dialog-content>
+    <h2>{{datos.encabezado}}</h2>
+    <mat-form-field appearance="fill" style="width:100%;">
+        <mat-label>Nombre</mat-label>
+        <input matInput [(ngModel)]="datos.festivo.nombre">
+    </mat-form-field>
+    <br>
+    <mat-form-field appearance="fill" style="width:100%;">
+        <mat-label>País</mat-label>
+        <mat-select [(value)]="datos.festivo.pais" [compareWith]="compararPaises">
+            <mat-option *ngFor="let p of datos.paises" [value]="p">
+                {{p.nombre }}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+    <br>
+    <mat-form-field appearance="fill" style="width:100%;">
+        <mat-label>Tipo</mat-label>
+        <mat-select [(value)]="datos.festivo.tipo" [compareWith]="compararTipos">
+            <mat-option *ngFor="let t of datos.tipos" [value]="t">
+                {{t.nombre }}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+    <br>
+    <mat-form-field appearance="fill">
+        <mat-label>Día</mat-label>
+        <input matInput [(ngModel)]="datos.festivo.dia">
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+        <mat-label>Mes</mat-label>
+        <input matInput [(ngModel)]="datos.festivo.mes">
+    </mat-form-field>
+    <br>
+    <mat-form-field appearance="fill">
+        <mat-label>Días después de Pascua</mat-label>
+        <input matInput [(ngModel)]="datos.festivo.diasPascua">
+    </mat-form-field>
+
+</div>
+<div mat-dialog-actions>
+    <button mat-raised-button color="primary" [mat-dialog-close]="datos">Aceptar</button>
+    <button mat-stroked-button color="primary" (click)="cerrar()">Cancelar</button>
+</div>

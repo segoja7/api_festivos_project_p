@@ -1,0 +1,102 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Installing kubectl..."
+      - curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.27.1/2023-04-19/bin/linux/amd64/kubectl
+      - chmod +x ./kubectl
+      - mv ./kubectl /usr/local/bin
+      - echo "Installing jq and envsubst..."
+      - yum install -y jq gettext
+      - echo "Verifying installations..."
+      - kubectl version --client
+      - jq --version
+      - envsubst --version
+
+  pre_build:
+    commands:
+      - echo "Deploy phase started on $(date)"
+      - echo "Configuring kubectl for EKS cluster..."
+      - aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $EKS_CLUSTER_NAME
+      - echo "Verifying cluster connection..."
+      - kubectl get nodes
+      
+      # Configurar variables para templates (usando variables de CodeBuild)
+      - export AWS_REGION=$AWS_DEFAULT_REGION
+      - export API_REPLICAS=2
+      - export FRONTEND_REPLICAS=2
+      - export API_MEMORY_REQUEST="512Mi"
+      - export API_MEMORY_LIMIT="1Gi"
+      - export API_CPU_REQUEST="250m"
+      - export API_CPU_LIMIT="500m"
+      - export FRONTEND_MEMORY_REQUEST="128Mi"
+      - export FRONTEND_MEMORY_LIMIT="256Mi"
+      - export FRONTEND_CPU_REQUEST="100m"
+      - export FRONTEND_CPU_LIMIT="200m"
+      - export API_IMAGE_TAG="api-latest"
+      - export FRONTEND_IMAGE_TAG="frontend-latest"
+      
+      - echo "Environment variables configured:"
+      - echo "  ECR_REPOSITORY_URI = $ECR_REPOSITORY_URI"
+      - echo "  RDS_ENDPOINT = $RDS_ENDPOINT"
+      - echo "  APP_NAME = $APP_NAME"
+      - echo "  NAMESPACE = $NAMESPACE"
+      - echo "  PROJECT_NAME = $PROJECT_NAME"
+
+  build:
+    commands:
+      - echo "Generating dynamic manifests with envsubst..."
+      - cd k8s
+      
+      # Crear directorio de manifiestos generados
+      - mkdir -p manifests-generated
+      
+      # Generar manifiestos desde templates usando envsubst
+      - echo "Processing templates with envsubst..."
+      - |
+        for template in templates/*.tpl; do
+          if [ -f "$template" ]; then
+            filename=$(basename "$template" .tpl)
+            echo "  Processing: $filename"
+            envsubst < "$template" > "manifests-generated/$filename"
+            echo "  Generated: manifests-generated/$filename"
+          fi
+        done
+      
+      # Copiar manifiestos estáticos que no necesitan templating
+      - echo "Copying static manifests..."
+      - cp manifests/db-complete-setup.yaml manifests-generated/ 2>/dev/null || echo "  db-complete-setup.yaml not found"
+      - cp manifests/external-secrets-serviceaccount.yaml manifests-generated/ 2>/dev/null || echo "  external-secrets-serviceaccount.yaml not found"
+      - cp manifests/sql-scripts-original.yaml manifests-generated/ 2>/dev/null || echo "  sql-scripts-original.yaml not found"
+      
+      # Mostrar manifiestos generados para debug
+      - echo "Generated manifests:"
+      - ls -la manifests-generated/
+      
+      # Aplicar manifiestos
+      - echo "Applying dynamic manifests..."
+      - kubectl apply -f manifests-generated/
+
+  post_build:
+    commands:
+      - echo "Waiting for deployments to complete..."
+      - kubectl rollout status deployment/$APP_NAME-api -n $NAMESPACE --timeout=300s || echo "API deployment timeout"
+      - kubectl rollout status deployment/$APP_NAME-frontend -n $NAMESPACE --timeout=300s || echo "Frontend deployment timeout"
+      
+      - echo "Verifying services and ingress..."
+      - kubectl get service -n $NAMESPACE
+      - kubectl get ingress -n $NAMESPACE
+      
+      - echo "Getting ALB URL..."
+      - ALB_URL=$(kubectl get ingress -n $NAMESPACE $APP_NAME-app-ingress-alb -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "ALB URL not ready yet")
+      - echo "ALB URL = $ALB_URL"
+      - echo "Frontend URL = http://$ALB_URL"
+      - echo "API URL = http://$ALB_URL/api"
+      
+      - echo "Deployment completed successfully on $(date)"
+
+artifacts:
+  files:
+    - k8s/manifests-generated/*
+  name: DeployArtifact

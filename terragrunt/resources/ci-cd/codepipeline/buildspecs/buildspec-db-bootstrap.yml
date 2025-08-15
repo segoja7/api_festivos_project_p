@@ -19,18 +19,30 @@ phases:
   
   build:
     commands:
-      - echo "Dynamically updating RDS secret ARN in manifest..."
-      - cd k8s/manifests
-      - sed -i "s|__RDS_SECRET_ARN__|${RDS_SECRET_ARN}|g" external-secret.yaml
-      - echo "Dynamically updating JWT secret ARN in manifest..."
-      - sed -i "s|__JWT_SECRET_ARN__|${JWT_SECRET_ARN}|g" external-secret.yaml
+      - echo "Generating dynamic external-secret manifest..."
+      - cd k8s
 
-      - echo "Manifest updated:"
-      - cat external-secret.yaml
+      # Instalar envsubst si no está disponible
+      - yum install -y gettext
+
+      # Configurar variables para el template
+      - export AWS_REGION=$AWS_DEFAULT_REGION
+      # Verificar que la variable se exportó correctamente
+      - echo "RDS_ENDPOINT = $RDS_ENDPOINT"
+      - echo "Verificando variables disponibles para envsubst:"
+      - env | grep -E "(RDS_ENDPOINT|AWS_REGION|NAMESPACE|DB_NAME|DB_PORT)"
+
+
+      # Generar external-secret desde template
+      - echo "Processing external-secret template..."
+      - envsubst < templates/external-secret.yaml.tpl > manifests/external-secret.yaml
+
+      - echo "Generated external-secret manifest:"
+      - cat manifests/external-secret.yaml
 
       - echo "Applying security and secret manifests..."
-      - kubectl apply -f external-secrets-serviceaccount.yaml -n festivos-api
-      - kubectl apply -f external-secret.yaml -n festivos-api
+      - kubectl apply -f manifests/external-secrets-serviceaccount.yaml -n festivos-api
+      - kubectl apply -f manifests/external-secret.yaml -n festivos-api
       
       - echo "Waiting for ExternalSecret 'rds-credentials' to be ready..."
       - kubectl wait --for=condition=Ready externalsecret/rds-credentials -n festivos-api --timeout=2m
@@ -52,11 +64,11 @@ phases:
         echo "Secret rds-secret found."
 
       - echo "Applying database setup manifests..."
-      - kubectl apply -f sql-scripts-original.yaml -n festivos-api
-      - kubectl apply -f db-complete-setup.yaml -n festivos-api
+      - kubectl apply -f manifests/sql-scripts-original.yaml -n festivos-api
+      - kubectl apply -f manifests/db-complete-setup.yaml -n festivos-api
   
   post_build:
     commands:
       - echo "Waiting for database setup job to complete..."
-      - kubectl wait --for=condition=complete job/db-complete-setup -n festivos-api --timeout=5m
+      - kubectl wait --for=condition=complete job/db-complete-setup -n festivos-api --timeout=2m
       - echo "Database Bootstrap completed successfully on `date`"

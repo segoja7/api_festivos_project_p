@@ -41,6 +41,7 @@ dependency "rds" {
   config_path = "${get_parent_terragrunt_dir("root")}/resources/databases/rds/postgre"
   mock_outputs = {
     db_instance_master_user_secret_arn = "arn:aws:secretsmanager:us-east-1:123456789012:secret:mock-rds"
+    rds_endpoint = "mock-endpoint"
   }
 }
 
@@ -62,4 +63,5 @@ inputs = {
   dockerhub_secret_arn  = dependency.secrets_manager.outputs.secrets["dockerhub"].arn
   codepipeline_role_arn =  dependency.role.outputs.codepipeline_role_arn
   codebuild_role_arn =  dependency.role.outputs.codebuild_role_arn
+  rds_endpoint = dependency.rds.outputs.db_instance_address
 }
