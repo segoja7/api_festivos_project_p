@@ -31,24 +31,14 @@ spec:
       type: Opaque
       data:
         # Spring Boot database configuration
-<<<<<<< HEAD:k8s/manifests/external-secret.yaml
-        SPRING_DATASOURCE_URL: "jdbc:postgresql://arquitectura-avanzada-postgres.co7s806uqdld.us-east-1.rds.amazonaws.com:5432/arquitectura_db"
-=======
         SPRING_DATASOURCE_URL: "jdbc:postgresql://${RDS_ENDPOINT}:${DB_PORT}/${DB_NAME}"
->>>>>>> new_code_app:k8s/templates/external-secret.yaml.tpl
         SPRING_DATASOURCE_USERNAME: "{{ .username }}"
         SPRING_DATASOURCE_PASSWORD: "{{ .password }}"
         SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.postgresql.Driver"
         # Individual values for flexibility
-<<<<<<< HEAD:k8s/manifests/external-secret.yaml
-        DB_HOST: "arquitectura-avanzada-postgres.co7s806uqdld.us-east-1.rds.amazonaws.com"
-        DB_PORT: "5432"
-        DB_NAME: "arquitectura_db"
-=======
         DB_HOST: "${RDS_ENDPOINT}"
         DB_PORT: "${DB_PORT}"
         DB_NAME: "${DB_NAME}"
->>>>>>> new_code_app:k8s/templates/external-secret.yaml.tpl
         DB_USERNAME: "{{ .username }}"
         DB_PASSWORD: "{{ .password }}"
   data:
