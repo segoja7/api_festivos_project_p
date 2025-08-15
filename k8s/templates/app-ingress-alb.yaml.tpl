@@ -12,14 +12,7 @@ metadata:
     alb.ingress.kubernetes.io/load-balancer-name: ${APP_NAME}-app-alb
     alb.ingress.kubernetes.io/group.name: ${APP_NAME}-app-group
     
-    # Configuraciones de salud para ALB
-    alb.ingress.kubernetes.io/healthcheck-path: /
-    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
-    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
-    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '30'
-    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '5'
-    alb.ingress.kubernetes.io/healthy-threshold-count: '2'
-    alb.ingress.kubernetes.io/unhealthy-threshold-count: '3'
+    # Health checks removidos - usar configuración por defecto del ALB
     
     # Configuraciones de timeout para ALB
     alb.ingress.kubernetes.io/load-balancer-attributes: |
@@ -40,7 +33,7 @@ spec:
   rules:
   - http:
       paths:
-      # Ruta para la API - debe ir ANTES que la ruta del frontend
+      # Ruta para la API
       - path: /api
         pathType: Prefix
         backend:
@@ -48,7 +41,7 @@ spec:
             name: ${APP_NAME}-api-service
             port:
               number: 80
-      # Ruta para el frontend - debe ir DESPUÉS de las rutas específicas
+      # Ruta para el frontend
       - path: /
         pathType: Prefix
         backend:

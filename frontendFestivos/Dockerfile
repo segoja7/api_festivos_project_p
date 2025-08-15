@@ -26,7 +26,7 @@ RUN npm install -g http-server
 WORKDIR /app
 
 # Copiar archivos construidos desde la etapa anterior (desde browser donde está el index.html)
-COPY --from=build /app/dist/festivos/browser ./dist
+COPY --from=build /app/dist/browser ./dist
 
 # Exponer puerto 8080 (puerto por defecto de http-server)
 EXPOSE 8080
