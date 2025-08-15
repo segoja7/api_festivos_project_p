@@ -45,3 +45,8 @@ variable "aws_region" {
   type        = string
   default     = "us-east-1"
 }
+
+variable "rds_endpoint" {
+  description = "RDS endpoint from the database module"
+  type        = string
+}

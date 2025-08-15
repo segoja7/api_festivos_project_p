@@ -98,6 +98,12 @@ locals {
           value = "5432"
           type  = "PLAINTEXT"
         }
+        # Agregar después de DB_PORT:
+        RDS_ENDPOINT = {
+          name  = "RDS_ENDPOINT"
+          value = var.rds_endpoint
+          type  = "PLAINTEXT"
+        }
 
       }
       
