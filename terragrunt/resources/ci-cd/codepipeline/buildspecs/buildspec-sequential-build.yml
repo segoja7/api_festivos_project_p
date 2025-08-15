@@ -80,5 +80,5 @@ artifacts:
     - imagedefinitions.json
     - build-info.json
     - k8s/**/*
-    - terragrunt/resources/ci-cd/codepipeline/buildspecs/buildspec-deploy-fullstack.yml
+    - terragrunt/resources/ci-cd/codepipeline/buildspecs/buildspec-deploy-dynamic.yml
   name: BuildArtifact
