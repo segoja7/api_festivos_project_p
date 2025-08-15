@@ -28,6 +28,12 @@ phases:
       # Configurar variables para el template
       - export AWS_REGION=$AWS_DEFAULT_REGION
       - export RDS_ENDPOINT=$(aws secretsmanager get-secret-value --secret-id "$RDS_SECRET_ARN" --query SecretString --output text | jq -r .hostname)
+      -
+      # Verificar que la variable se exportó correctamente
+      - echo "RDS_ENDPOINT = $RDS_ENDPOINT"
+      - echo "Verificando variables disponibles para envsubst:"
+      - env | grep -E "(RDS_ENDPOINT|AWS_REGION|NAMESPACE|DB_NAME|DB_PORT)"
+
 
       # Generar external-secret desde template
       - echo "Processing external-secret template..."
