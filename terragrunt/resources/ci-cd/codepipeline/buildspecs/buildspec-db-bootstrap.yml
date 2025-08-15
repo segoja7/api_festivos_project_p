@@ -70,5 +70,5 @@ phases:
   post_build:
     commands:
       - echo "Waiting for database setup job to complete..."
-      - kubectl wait --for=condition=complete job/db-complete-setup -n festivos-api --timeout=5m
+      - kubectl wait --for=condition=complete job/db-complete-setup -n festivos-api --timeout=2m
       - echo "Database Bootstrap completed successfully on `date`"
