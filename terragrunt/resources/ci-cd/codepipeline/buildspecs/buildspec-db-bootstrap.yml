@@ -27,7 +27,7 @@ phases:
 
       # Configurar variables para el template
       - export AWS_REGION=$AWS_DEFAULT_REGION
-      - export RDS_ENDPOINT=$(aws secretsmanager get-secret-value --secret-id "$RDS_SECRET_ARN" --query SecretString --output text | jq -r .host)
+      - export RDS_ENDPOINT=$(aws secretsmanager get-secret-value --secret-id "$RDS_SECRET_ARN" --query SecretString --output text | jq -r .hostname)
 
       # Generar external-secret desde template
       - echo "Processing external-secret template..."
@@ -60,8 +60,8 @@ phases:
         echo "Secret rds-secret found."
 
       - echo "Applying database setup manifests..."
-      - kubectl apply -f sql-scripts-original.yaml -n festivos-api
-      - kubectl apply -f db-complete-setup.yaml -n festivos-api
+      - kubectl apply -f manifests/sql-scripts-original.yaml -n festivos-api
+      - kubectl apply -f manifests/db-complete-setup.yaml -n festivos-api
   
   post_build:
     commands:
