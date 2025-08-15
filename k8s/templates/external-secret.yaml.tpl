@@ -2,12 +2,12 @@ apiVersion: external-secrets.io/v1
 kind: SecretStore
 metadata:
   name: aws-secrets-manager
-  namespace: festivos-api
+  namespace: ${NAMESPACE}
 spec:
   provider:
     aws:
       service: SecretsManager
-      region: us-east-1
+      region: ${AWS_REGION}
       auth:
         # Using IRSA (IAM Roles for Service Accounts)
         jwt:
@@ -18,7 +18,7 @@ apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: rds-credentials
-  namespace: festivos-api
+  namespace: ${NAMESPACE}
 spec:
   refreshInterval: 1h
   secretStoreRef:
@@ -31,31 +31,31 @@ spec:
       type: Opaque
       data:
         # Spring Boot database configuration
-        SPRING_DATASOURCE_URL: "jdbc:postgresql://arquitectura-avanzada-postgres.cpgeyyimk6he.us-east-1.rds.amazonaws.com:5432/festivos"
+        SPRING_DATASOURCE_URL: "jdbc:postgresql://${RDS_ENDPOINT}:${RDS_PORT}/${DB_NAME}"
         SPRING_DATASOURCE_USERNAME: "{{ .username }}"
         SPRING_DATASOURCE_PASSWORD: "{{ .password }}"
         SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.postgresql.Driver"
         # Individual values for flexibility
-        DB_HOST: "arquitectura-avanzada-postgres.cpgeyyimk6he.us-east-1.rds.amazonaws.com"
-        DB_PORT: "5432"
-        DB_NAME: "festivos"
+        DB_HOST: "${RDS_ENDPOINT}"
+        DB_PORT: "${RDS_PORT}"
+        DB_NAME: "${DB_NAME}"
         DB_USERNAME: "{{ .username }}"
         DB_PASSWORD: "{{ .password }}"
   data:
   - secretKey: username
     remoteRef:
-      key: __RDS_SECRET_ARN__
+      key: ${RDS_SECRET_ARN}
       property: username
   - secretKey: password
     remoteRef:
-      key: __RDS_SECRET_ARN__
+      key: ${RDS_SECRET_ARN}
       property: password
 ---
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: jwt-secrets
-  namespace: festivos-api
+  namespace: ${NAMESPACE}
 spec:
   refreshInterval: 1h
   secretStoreRef:
@@ -72,5 +72,5 @@ spec:
   data:
   - secretKey: jwt_secret
     remoteRef:
-      key: __JWT_SECRET_ARN__
+      key: ${JWT_SECRET_ARN}
       property: jwt_secret

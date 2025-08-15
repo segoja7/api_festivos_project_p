@@ -154,7 +154,7 @@ resource "aws_codebuild_project" "deploy_project" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = "terragrunt/resources/ci-cd/codepipeline/buildspecs/buildspec-deploy-fullstack.yml"
+    buildspec = "terragrunt/resources/ci-cd/codepipeline/buildspecs/buildspec-deploy-dynamic.yml"
   }
 
   tags = merge(local.workspace.tags, {

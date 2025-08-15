@@ -1,16 +1,16 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: festivos-app-ingress-alb
-  namespace: festivos-api
+  name: ${APP_NAME}-app-ingress-alb
+  namespace: ${NAMESPACE}
   annotations:
     # IMPORTANTE: Usar AWS Load Balancer Controller para ALB
     kubernetes.io/ingress.class: alb
     # Configuración específica para ALB (NO Classic Load Balancer)
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/load-balancer-name: festivos-app-alb
-    alb.ingress.kubernetes.io/group.name: festivos-app-group
+    alb.ingress.kubernetes.io/load-balancer-name: ${APP_NAME}-app-alb
+    alb.ingress.kubernetes.io/group.name: ${APP_NAME}-app-group
     
     # Configuraciones de salud para ALB
     alb.ingress.kubernetes.io/healthcheck-path: /
@@ -32,9 +32,9 @@ metadata:
     
     # Tags para el ALB
     alb.ingress.kubernetes.io/tags: |
-      Environment=production,
-      Project=arquitectura-avanzada,
-      Service=festivos-app
+      Environment=${ENVIRONMENT},
+      Project=${PROJECT_NAME},
+      Service=${APP_NAME}-app
 spec:
   ingressClassName: alb
   rules:
@@ -45,7 +45,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: festivos-api-service
+            name: ${APP_NAME}-api-service
             port:
               number: 80
       # Ruta para el frontend - debe ir DESPUÉS de las rutas específicas
@@ -53,6 +53,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: festivos-frontend-service
+            name: ${APP_NAME}-frontend-service
             port:
               number: 80

@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: festivos-frontend-service
-  namespace: festivos-api
+  name: ${APP_NAME}-api-service
+  namespace: ${NAMESPACE}
   labels:
-    app: festivos-frontend
+    app: ${APP_NAME}-api
 spec:
   type: ClusterIP
   ports:
@@ -13,4 +13,4 @@ spec:
     protocol: TCP
     name: http
   selector:
-    app: festivos-frontend
+    app: ${APP_NAME}-api

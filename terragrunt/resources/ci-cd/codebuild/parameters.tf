@@ -25,12 +25,12 @@ locals {
       environment_variables = {
         AWS_DEFAULT_REGION = {
           name  = "AWS_DEFAULT_REGION"
-          value = "us-east-1"
+          value = data.aws_region.current.name
           type  = "PLAINTEXT"
         },
         AWS_ACCOUNT_ID = {
           name  = "AWS_ACCOUNT_ID"
-          value = "476114125818"
+          value = data.aws_caller_identity.current.id
           type  = "PLAINTEXT"
         },
         IMAGE_REPO_NAME = {
@@ -57,7 +57,47 @@ locals {
            name  = "DOCKERHUB_SECRET_ARN"
            value = var.dockerhub_secret_arn
            type  = "PLAINTEXT"
-         }
+        }
+        RDS_SECRET_ARN = {
+          name  = "RDS_SECRET_ARN"
+          value = var.rds_secret_arn
+          type  = "PLAINTEXT"
+        }
+        ECR_REPOSITORY_URI = {
+          name  = "ECR_REPOSITORY_URI"
+          value = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com/${var.ecr_repository_name}"
+          type  = "PLAINTEXT"
+        }
+        PROJECT_NAME = {
+          name  = "PROJECT_NAME"
+          value = "arquitectura-avanzada"
+          type  = "PLAINTEXT"
+        }
+        APP_NAME = {
+          name  = "APP_NAME"
+          value = "festivos"
+          type  = "PLAINTEXT"
+        }
+        NAMESPACE = {
+          name  = "NAMESPACE"
+          value = "festivos-api"
+          type  = "PLAINTEXT"
+        }
+        ENVIRONMENT = {
+          name  = "ENVIRONMENT"
+          value = "dev"
+          type  = "PLAINTEXT"
+        }
+        DB_NAME = {
+          name  = "DB_NAME"
+          value = "festivos"
+          type  = "PLAINTEXT"
+        }
+        DB_PORT = {
+          name  = "DB_PORT"
+          value = "5432"
+          type  = "PLAINTEXT"
+        }
 
       }
       

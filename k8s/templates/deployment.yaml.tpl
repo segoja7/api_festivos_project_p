@@ -1,33 +1,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: festivos-api
-  namespace: festivos-api
+  name: ${APP_NAME}-api
+  namespace: ${NAMESPACE}
   labels:
-    app: festivos-api
+    app: ${APP_NAME}-api
     version: v1
 spec:
-  replicas: 2
+  replicas: ${API_REPLICAS}
   selector:
     matchLabels:
-      app: festivos-api
+      app: ${APP_NAME}-api
       version: v1
   template:
     metadata:
       labels:
-        app: festivos-api
+        app: ${APP_NAME}-api
         version: v1
     spec:
       containers:
-      - name: festivos-api
-        image: 476114125818.dkr.ecr.us-east-1.amazonaws.com/arquitectura-avanzada-app:latest
+      - name: ${APP_NAME}-api
+        image: ${ECR_REPOSITORY_URI}:${API_IMAGE_TAG}
         ports:
         - containerPort: 8080
           name: http
         env:
         # Spring Boot configuration
         - name: SPRING_PROFILES_ACTIVE
-          value: "prod"
+          value: "${ENVIRONMENT}"
         - name: SERVER_PORT
           value: "8080"
         
@@ -76,11 +76,11 @@ spec:
         
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "250m"
+            memory: "${API_MEMORY_REQUEST}"
+            cpu: "${API_CPU_REQUEST}"
           limits:
-            memory: "1Gi"
-            cpu: "500m"
+            memory: "${API_MEMORY_LIMIT}"
+            cpu: "${API_CPU_LIMIT}"
         # Usar TCP probe para liveness - más simple y confiable
         livenessProbe:
           tcpSocket:
